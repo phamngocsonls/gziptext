@@ -122,6 +122,30 @@ def serialize_gzip_header(dic):
     return res
 
 
+def to_text(fpin, fpout):
+    header = read_gzip_header(fpin)
+    fpout.write(serialize_gzip_header(header))
+
+    prev = b''
+    curr = b''
+    fpout.write(b'----\n')
+    while True:
+        curr = fpin.read(BUFF_SIZE)
+        if len(curr) < BUFF_SIZE:
+            break
+        fpout.write(wrapline(b64encode(prev)))
+        prev = curr
+
+    last = prev + curr
+    fpout.write(wrapline(b64encode(last[:-8])))
+    fpout.write(b'----\n')
+
+    crc32 = i64(last[-8:-4])
+    isize = i64(last[-4:])
+    fpout.write(b'crc32\t' + str(crc32).encode() + b'\n')
+    fpout.write(b'isize\t' + str(isize).encode() + b'\n')
+
+
 def usage():
     print(__doc__, file=sys.stderr)
 
@@ -133,30 +157,10 @@ def main():
             usage()
             sys.exit(0)
 
-    stdout = sys.stdout.buffer
     stdin = sys.stdin.buffer
+    stdout = sys.stdout.buffer
 
-    header = read_gzip_header(stdin)
-    stdout.write(serialize_gzip_header(header))
-
-    prev = b''
-    curr = b''
-    stdout.write(b'----\n')
-    while True:
-        curr = stdin.read(BUFF_SIZE)
-        if len(curr) < BUFF_SIZE:
-            break
-        stdout.write(wrapline(b64encode(prev)))
-        prev = curr
-
-    last = prev + curr
-    stdout.write(wrapline(b64encode(last[:-8])))
-    stdout.write(b'----\n')
-
-    crc32 = i64(last[-8:-4])
-    isize = i64(last[-4:])
-    stdout.write(b'crc32\t' + str(crc32).encode() + b'\n')
-    stdout.write(b'isize\t' + str(isize).encode() + b'\n')
+    to_text(stdin, stdout)
 
 if __name__ == '__main__':
     main()
