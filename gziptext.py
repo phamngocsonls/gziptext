@@ -106,7 +106,7 @@ def read_gzip_header(fp):
     return data
 
 
-def serialize_gzip_header(dic):
+def create_text_header(dic):
     """Convert header dict to bytes"""
     res = b''
     for key, val in dic.items():
@@ -124,7 +124,7 @@ def serialize_gzip_header(dic):
 
 def to_text(fpin, fpout):
     header = read_gzip_header(fpin)
-    fpout.write(serialize_gzip_header(header))
+    fpout.write(create_text_header(header))
 
     prev = b''
     curr = b''
