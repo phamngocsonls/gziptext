@@ -54,12 +54,12 @@ def read_cstr(fp):
     return s
 
 
-def i32(byte):
+def to_i32(byte):
     """Decode bytes to a 32-bit integer"""
     return Struct('<H').unpack(byte)[0]
 
 
-def i64(byte):
+def to_i64(byte):
     """Decode bytes to a 64-bit integer"""
     return Struct('<I').unpack(byte)[0]
 
@@ -94,7 +94,7 @@ def read_gzip_header(fp):
     if data['flg'] & FRESERVED:
         raise InvalidFlagError
     if data['flg'] & FEXTRA:
-        xlen = i32(saferead(fp, 2))
+        xlen = to_i32(saferead(fp, 2))
         data['exfield'] = saferead(fp, xlen)
     if data['flg'] & FNAME:
         cstr = read_cstr(fp)
@@ -140,8 +140,8 @@ def to_text(fpin, fpout):
     fpout.write(wrapline(b64encode(last[:-8])))
     fpout.write(b'----\n')
 
-    crc32 = i64(last[-8:-4])
-    isize = i64(last[-4:])
+    crc32 = to_i64(last[-8:-4])
+    isize = to_i64(last[-4:])
     fpout.write(b'crc32\t' + str(crc32).encode() + b'\n')
     fpout.write(b'isize\t' + str(isize).encode() + b'\n')
 
