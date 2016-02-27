@@ -84,7 +84,7 @@ def wrapline(bstr, length=72):
 
 def read_gzip_header(fp):
     """Read and parse gzip header from file"""
-    data = OrderedDict()
+    dic = OrderedDict()
 
     hd = Struct(BASE_HEADER)
     buf = saferead(fp, hd.size)
@@ -95,25 +95,25 @@ def read_gzip_header(fp):
     if cm != 8:
         raise UnknownMethodError
 
-    data['cm'] = cm
-    data['flg'] = flg
-    data['mtime'] = mtime
-    data['xfl'] = xfl
-    data['os'] = os
+    dic['cm'] = cm
+    dic['flg'] = flg
+    dic['mtime'] = mtime
+    dic['xfl'] = xfl
+    dic['os'] = os
 
-    if data['flg'] & FRESERVED:
+    if dic['flg'] & FRESERVED:
         raise InvalidFlagError
-    if data['flg'] & FEXTRA:
+    if dic['flg'] & FEXTRA:
         xlen = to_i32(saferead(fp, 2))
-        data['exfield'] = saferead(fp, xlen)
-    if data['flg'] & FNAME:
+        dic['exfield'] = saferead(fp, xlen)
+    if dic['flg'] & FNAME:
         cstr = read_cstr(fp)
-        data['name'] = cstr.decode(ENCODING)
-    if data['flg'] & FCOMMENT:
+        dic['name'] = cstr.decode(ENCODING)
+    if dic['flg'] & FCOMMENT:
         cstr = read_cstr(fp)
-        data['comment'] = cstr.decode(ENCODING)
+        dic['comment'] = cstr.decode(ENCODING)
 
-    return data
+    return dic
 
 
 def create_text_header(dic):
