@@ -64,6 +64,16 @@ def to_i64(byte):
     return Struct('<I').unpack(byte)[0]
 
 
+def from_i32(num):
+    """Encode a 32-bit int to bytes"""
+    return Struct('<H').pack(num)
+
+
+def from_i64(num):
+    """Encode a 64-bit int to bytes"""
+    return Struct('<I').pack(num)
+
+
 def wrapline(bstr, length=72):
     """Wrap long bytes lines"""
     res = b''
