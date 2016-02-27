@@ -122,10 +122,12 @@ def create_text_header(dic):
     for key, val in dic.items():
         bkey = key.encode()
 
-        if isinstance(val, (int, str)):
+        if key in ('cm', 'flg', 'mtime', 'xfl', 'os'):
             bval = str(val).encode()
-        elif isinstance(val, bytes):
-            bval = val
+        elif key in ('name', 'comment'):
+            bval = val.encode()
+        elif key == 'exfield':
+            bval = b64encode(val)
         else:
             raise ValueError
         res += bkey + b'\t' + bval + b'\n'
