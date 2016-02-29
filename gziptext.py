@@ -164,6 +164,22 @@ def create_text_header(dic):
     return res
 
 
+def create_gzip_header(dic):
+    res = b''
+    hd = Struct(BASE_HEADER)
+    res += hd.pack(GZIP_MAGIC, dic['cm'], dic['flg'], dic['mtime'],
+                   dic['xfl'], dic['os'])
+
+    if dic['flg'] & FEXTRA:
+        res += from_i32(len(dic['exfield']))
+        res += dic['exfield']
+    if dic['flg'] & FNAME:
+        res += dic['name'].encode(ENCODING) + b'\0'
+    if dic['flg'] & FCOMMENT:
+        res += dic['comment'].encode(ENCODING) + b'\0'
+    return res
+
+
 def to_text(fpin, fpout):
     header = read_gzip_header(fpin)
     fpout.write(create_text_header(header))
@@ -188,21 +204,40 @@ def to_text(fpin, fpout):
     fpout.write(b'isize\t' + str(isize).encode() + b'\n')
 
 
+def to_gzip(fpin, fpout):
+    header = read_text_header(fpin)
+    fpout.write(create_gzip_header(header))
+
+    for bline in fpin:
+        bline = bline.rstrip()
+        if bline == b'----':
+            break
+        fpout.write(b64decode(bline))
+
+    footer = read_text_footer(fpin)
+    fpout.write(from_i64(footer['crc32']))
+    fpout.write(from_i64(footer['isize']))
+
+
 def usage():
     print(__doc__, file=sys.stderr)
 
 
 def main():
-    opts, args = getopt(sys.argv[1:], 'h', ('help',))
+    method = to_text
+
+    opts, args = getopt(sys.argv[1:], 'hd', ('help',))
     for key, val in opts:
         if key in ('-h', '--help'):
             usage()
             sys.exit(0)
+        elif key == '-d':
+            method = to_gzip
 
     stdin = sys.stdin.buffer
     stdout = sys.stdout.buffer
 
-    to_text(stdin, stdout)
+    method(stdin, stdout)
 
 if __name__ == '__main__':
     main()
