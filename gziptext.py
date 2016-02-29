@@ -11,7 +11,7 @@ USAGE
 
 import sys
 from getopt import getopt
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from struct import Struct
 from collections import OrderedDict
 
@@ -113,6 +113,36 @@ def read_gzip_header(fp):
         cstr = read_cstr(fp)
         dic['comment'] = cstr.decode(ENCODING)
 
+    return dic
+
+
+def read_text_header(fp):
+    dic = {}
+    for bline in fp:
+        bline = bline.rstrip()
+        if bline == b'----':
+            break
+        bkey, bval = bline.split(b'\t')
+        key = bkey.decode()
+        if key in ('cm', 'flg', 'mtime', 'xfl', 'os'):
+            val = int(bval)
+        elif key in ('name', 'comment'):
+            val = bval.decode()
+        elif key == 'exfield':
+            val = b64decode(bval)
+        else:
+            raise ValueError
+        dic[key] = val
+    return dic
+
+
+def read_text_footer(fp):
+    dic = {}
+    for bline in fp:
+        bline = bline.rstrip()
+        bkey, bval = bline.split(b'\t')
+        key = bkey.decode()
+        dic[key] = int(bval)
     return dic
 
 
