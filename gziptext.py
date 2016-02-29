@@ -181,8 +181,8 @@ def create_gzip_header(dic):
 
 
 def to_text(fpin, fpout):
-    header = read_gzip_header(fpin)
-    fpout.write(create_text_header(header))
+    hdic = read_gzip_header(fpin)
+    fpout.write(create_text_header(hdic))
 
     prev = b''
     curr = b''
@@ -205,8 +205,8 @@ def to_text(fpin, fpout):
 
 
 def to_gzip(fpin, fpout):
-    header = read_text_header(fpin)
-    fpout.write(create_gzip_header(header))
+    hdic = read_text_header(fpin)
+    fpout.write(create_gzip_header(hdic))
 
     for bline in fpin:
         bline = bline.rstrip()
@@ -214,9 +214,9 @@ def to_gzip(fpin, fpout):
             break
         fpout.write(b64decode(bline))
 
-    footer = read_text_footer(fpin)
-    fpout.write(from_i64(footer['crc32']))
-    fpout.write(from_i64(footer['isize']))
+    fdic = read_text_footer(fpin)
+    fpout.write(from_i64(fdic['crc32']))
+    fpout.write(from_i64(fdic['isize']))
 
 
 def usage():
