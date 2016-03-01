@@ -18,7 +18,7 @@ from collections import OrderedDict
 GZIP_MAGIC = b'\x1f\x8b'
 ENCODING = 'latin-1'  # RFC-1952
 FTEXT = 1
-FCRC16 = 2
+FHCRC = 2
 FEXTRA = 4
 FNAME = 8
 FCOMMENT = 16
@@ -112,6 +112,8 @@ def read_gzip_header(fp):
     if dic['flg'] & FCOMMENT:
         cstr = read_cstr(fp)
         dic['comment'] = cstr.decode(ENCODING)
+    if dic['flg'] & FHCRC:
+        dic['crc16'] = to_i32(saferead(fp, 2))
 
     return dic
 
@@ -124,7 +126,7 @@ def read_text_header(fp):
             break
         bkey, bval = bline.split(b'\t')
         key = bkey.decode()
-        if key in ('cm', 'flg', 'mtime', 'xfl', 'os'):
+        if key in ('cm', 'flg', 'mtime', 'xfl', 'os', 'crc16'):
             val = int(bval)
         elif key in ('name', 'comment'):
             val = bval.decode()
@@ -152,7 +154,7 @@ def create_text_header(dic):
     for key, val in dic.items():
         bkey = key.encode()
 
-        if key in ('cm', 'flg', 'mtime', 'xfl', 'os'):
+        if key in ('cm', 'flg', 'mtime', 'xfl', 'os', 'crc16'):
             bval = str(val).encode()
         elif key in ('name', 'comment'):
             bval = val.encode()
@@ -177,6 +179,8 @@ def create_gzip_header(dic):
         res += dic['name'].encode(ENCODING) + b'\0'
     if dic['flg'] & FCOMMENT:
         res += dic['comment'].encode(ENCODING) + b'\0'
+    if dic['flg'] & FHCRC:
+        res += from_i32(dic['crc16'])
     return res
 
 
