@@ -10,6 +10,7 @@ USAGE
 """
 
 import sys
+import zlib
 from getopt import getopt
 from base64 import b64encode, b64decode
 from struct import Struct
@@ -78,6 +79,12 @@ def from_i32(num):
 def from_i64(num):
     """Encode a 64-bit int to bytes"""
     return Struct('<I').pack(num)
+
+
+def crc16(buf):
+    """Calculate crc16 checksum of bytes"""
+    crc32 = zlib.crc32(buf)
+    return crc32 & 0xffff
 
 
 def is_i32(num):
