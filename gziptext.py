@@ -60,14 +60,14 @@ def read_cstr(fp):
     return s
 
 
-def to_i32(byte):
+def to_i32(buf):
     """Decode bytes to a 32-bit integer"""
-    return Struct('<H').unpack(byte)[0]
+    return Struct('<H').unpack(buf)[0]
 
 
-def to_i64(byte):
+def to_i64(buf):
     """Decode bytes to a 64-bit integer"""
-    return Struct('<I').unpack(byte)[0]
+    return Struct('<I').unpack(buf)[0]
 
 
 def from_i32(num):
