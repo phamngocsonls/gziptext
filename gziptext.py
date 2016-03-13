@@ -34,10 +34,6 @@ I64_MAX = 18446744073709551615
 
 class GzipError(Exception): pass
 class BadMagicError(GzipError): pass
-class UnknownMethodError(GzipError): pass
-class InvalidFlagError(GzipError): pass
-class MissingFieldError(GzipError): pass
-class UnknownFieldError(GzipError): pass
 
 
 def saferead(fp, size):
