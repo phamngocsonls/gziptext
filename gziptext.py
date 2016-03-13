@@ -310,10 +310,14 @@ def main():
         elif key == '-d':
             method = to_gzip
 
-    stdin = sys.stdin.buffer
-    stdout = sys.stdout.buffer
+    if args:
+        fpin = open(args[0], 'rb')
+    else:
+        fpin = sys.stdin.buffer
 
-    method(stdin, stdout)
+    fpout = sys.stdout.buffer
+
+    method(fpin, fpout)
 
 if __name__ == '__main__':
     main()
