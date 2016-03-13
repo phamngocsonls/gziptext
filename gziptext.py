@@ -28,6 +28,7 @@ FRESERVED = 224
 
 BUFF_SIZE = 4096
 BASE_HEADER = '<2sBBIBB'
+SEP = b'\t'
 
 I32_MAX = 4294967295
 I64_MAX = 18446744073709551615
@@ -190,7 +191,7 @@ def read_text_header(fp):
         bline = bline.rstrip()
         if bline == b'----':
             break
-        bkey, bval = bline.split(b'\t')
+        bkey, bval = bline.split(SEP)
         key = bkey.decode()
         if key in ('cm', 'flg', 'mtime', 'xfl', 'os', 'crc16'):
             val = int(bval)
@@ -209,7 +210,7 @@ def read_text_footer(fp):
     dic = {}
     for bline in fp:
         bline = bline.rstrip()
-        bkey, bval = bline.split(b'\t')
+        bkey, bval = bline.split(SEP)
         key = bkey.decode()
         dic[key] = int(bval)
     return dic
@@ -229,7 +230,7 @@ def create_text_header(dic):
             bval = b64encode(val)
         else:
             raise ValueError
-        res += bkey + b'\t' + bval + b'\n'
+        res += bkey + SEP + bval + b'\n'
     return res
 
 
@@ -274,8 +275,8 @@ def to_text(fpin, fpout):
 
     crc32 = to_i64(last[-8:-4])
     isize = to_i64(last[-4:])
-    fpout.write(b'crc32\t' + str(crc32).encode() + b'\n')
-    fpout.write(b'isize\t' + str(isize).encode() + b'\n')
+    fpout.write(b'crc32' + SEP + str(crc32).encode() + b'\n')
+    fpout.write(b'isize' + SEP + str(isize).encode() + b'\n')
 
 
 def to_gzip(fpin, fpout):
