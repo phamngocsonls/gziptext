@@ -302,12 +302,12 @@ def usage():
 def main():
     method = to_text
 
-    opts, args = getopt(sys.argv[1:], 'hd', ('help',))
+    opts, args = getopt(sys.argv[1:], 'hR', ('help',))
     for key, val in opts:
         if key in ('-h', '--help'):
             usage()
             sys.exit(0)
-        elif key == '-d':
+        elif key == '-R':
             method = to_gzip
 
     if args:
