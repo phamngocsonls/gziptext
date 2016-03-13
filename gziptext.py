@@ -9,8 +9,10 @@ USAGE
         python gziptext.py < archive.gz > archive.gzt
 """
 
+import io
 import sys
 import zlib
+import doctest
 from getopt import getopt
 from base64 import b64encode, b64decode
 from struct import Struct
@@ -38,7 +40,11 @@ class BadMagicError(GzipError): pass
 
 
 def saferead(fp, size):
-    """Read exactly <size> bytes from file"""
+    """Read exactly <size> bytes from file.
+
+    >>> saferead(io.BytesIO(b'abc'), 2)
+    b'ab'
+    """
     buf = fp.read(size)
     if len(buf) < size:
         raise IOError
@@ -46,7 +52,11 @@ def saferead(fp, size):
 
 
 def read_cstr(fp):
-    """Read a zero terminated string"""
+    """Read a zero terminated string.
+
+    >>> read_cstr(io.BytesIO(b'abc\\0'))
+    b'abc'
+    """
     s = b''
     while True:
         c = fp.read(1)
@@ -59,46 +69,85 @@ def read_cstr(fp):
 
 
 def to_i16(buf):
-    """Decode bytes to a 16-bit integer"""
+    """Decode bytes to a 16-bit integer.
+
+    >>> to_i16(b'\\x12\\x34')
+    13330
+    """
     return Struct('<H').unpack(buf)[0]
 
 
 def to_i32(buf):
-    """Decode bytes to a 32-bit integer"""
+    """Decode bytes to a 32-bit integer.
+
+    >>> to_i32(b'\\x12\\x34\\x56\\x78')
+    2018915346
+    """
     return Struct('<I').unpack(buf)[0]
 
 
 def from_i16(num):
-    """Encode a 16-bit int to bytes"""
+    """Encode a 16-bit int to bytes.
+
+    >>> from_i16(0x1234)
+    b'4\\x12'
+    """
     return Struct('<H').pack(num)
 
 
 def from_i32(num):
-    """Encode a 32-bit int to bytes"""
+    """Encode a 32-bit int to bytes.
+
+    >>> from_i32(0x12345678)
+    b'xV4\\x12'
+    """
     return Struct('<I').pack(num)
 
 
 def crc16(buf):
-    """Calculate crc16 checksum of bytes"""
+    """Calculate crc16 checksum of bytes.
+
+    >>> crc16(b'abcde')
+    55397
+    """
     crc32 = zlib.crc32(buf)
     return crc32 & 0xffff
 
 
 def is_i16(num):
-    """Check if an (unsigned) 16-bit int"""
+    """Check if an (unsigned) 16-bit int.
+
+    >>> is_i16(0xffff)
+    True
+    >>> is_i16(0x10000)
+    False
+    """
     if not isinstance(num, int):
         return False
     return 0 <= num and num <= I16_MAX
 
 
 def is_i32(num):
-    """Check if an (unsigned) 32-bit int"""
+    """Check if an (unsigned) 32-bit int.
+
+    >>> is_i32(0xffffffff)
+    True
+    >>> is_i32(0x100000000)
+    False
+    """
     if not isinstance(num, int):
         return False
     return 0 <= num and num <= I32_MAX
 
 
 def encodable(text, enc):
+    """Check if a string consists of <enc> chars.
+
+    >>> encodable('aiueo', ENCODING)
+    True
+    >>> encodable('\u3042', ENCODING)
+    False
+    """
     resp = True
     try:
         text.encode(enc)
@@ -108,7 +157,11 @@ def encodable(text, enc):
 
 
 def wrapline(bstr, length=72):
-    """Wrap long bytes lines"""
+    """Wrap long bytes lines.
+
+    >>> wrapline(b'abcdef', length=3)
+    b'abc\\ndef\\n'
+    """
     res = b''
     for idx in range(0, len(bstr), length):
         res += bstr[idx:idx+length] + b'\n'
@@ -303,13 +356,16 @@ def usage():
 def main():
     method = to_text
 
-    opts, args = getopt(sys.argv[1:], 'hR', ('help',))
+    opts, args = getopt(sys.argv[1:], 'hR', ('help','test'))
     for key, val in opts:
         if key in ('-h', '--help'):
             usage()
             sys.exit(0)
         elif key == '-R':
             method = to_gzip
+        elif key == '--test':
+            doctest.testmod()
+            sys.exit(0)
 
     if args:
         fpin = open(args[0], 'rb')
