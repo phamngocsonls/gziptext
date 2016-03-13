@@ -30,8 +30,8 @@ BUFF_SIZE = 4096
 BASE_HEADER = '<2sBBIBB'
 SEP = b'\t'
 
-I32_MAX = 4294967295
-I64_MAX = 18446744073709551615
+I16_MAX = 0xffff
+I32_MAX = 0xffffffff
 
 class GzipError(Exception): pass
 class BadMagicError(GzipError): pass
@@ -58,23 +58,23 @@ def read_cstr(fp):
     return s
 
 
-def to_i32(buf):
-    """Decode bytes to a 32-bit integer"""
+def to_i16(buf):
+    """Decode bytes to a 16-bit integer"""
     return Struct('<H').unpack(buf)[0]
 
 
-def to_i64(buf):
-    """Decode bytes to a 64-bit integer"""
+def to_i32(buf):
+    """Decode bytes to a 32-bit integer"""
     return Struct('<I').unpack(buf)[0]
+
+
+def from_i16(num):
+    """Encode a 16-bit int to bytes"""
+    return Struct('<H').pack(num)
 
 
 def from_i32(num):
     """Encode a 32-bit int to bytes"""
-    return Struct('<H').pack(num)
-
-
-def from_i64(num):
-    """Encode a 64-bit int to bytes"""
     return Struct('<I').pack(num)
 
 
@@ -84,18 +84,18 @@ def crc16(buf):
     return crc32 & 0xffff
 
 
+def is_i16(num):
+    """Check if an (unsigned) 16-bit int"""
+    if not isinstance(num, int):
+        return False
+    return 0 <= num and num <= I16_MAX
+
+
 def is_i32(num):
     """Check if an (unsigned) 32-bit int"""
     if not isinstance(num, int):
         return False
     return 0 <= num and num <= I32_MAX
-
-
-def is_i64(num):
-    """Check if an (unsigned) 64-bit int"""
-    if not isinstance(num, int):
-        return False
-    return 0 <= num and num <= I64_MAX
 
 
 def encodable(text, enc):
@@ -123,11 +123,11 @@ def assert_header(dic):
     assert 'xfl' in dic
     assert 'os' in dic
 
-    assert is_i32(dic['cm'])
-    assert is_i32(dic['flg'])
+    assert is_i16(dic['cm'])
+    assert is_i16(dic['flg'])
     assert is_i32(dic['mtime'])
-    assert is_i32(dic['xfl'])
-    assert is_i32(dic['os'])
+    assert is_i16(dic['xfl'])
+    assert is_i16(dic['os'])
 
     if dic['flg'] & FEXTRA:
         assert 'exfield' in dic
@@ -142,7 +142,7 @@ def assert_header(dic):
         assert encodable(dic['comment'], ENCODING)
     if dic['flg'] & FHCRC:
         assert 'crc16' in dic
-        assert is_i32(dic['crc16'])
+        assert is_i16(dic['crc16'])
 
     known_fields = {'cm', 'flg', 'mtime', 'xfl', 'os',
                     'exfield','name', 'comment', 'crc16'}
@@ -170,7 +170,7 @@ def read_gzip_header(fp):
     dic['os'] = os
 
     if dic['flg'] & FEXTRA:
-        xlen = to_i32(saferead(fp, 2))
+        xlen = to_i16(saferead(fp, 2))
         dic['exfield'] = saferead(fp, xlen)
     if dic['flg'] & FNAME:
         cstr = read_cstr(fp)
@@ -179,7 +179,7 @@ def read_gzip_header(fp):
         cstr = read_cstr(fp)
         dic['comment'] = cstr.decode(ENCODING)
     if dic['flg'] & FHCRC:
-        dic['crc16'] = to_i32(saferead(fp, 2))
+        dic['crc16'] = to_i16(saferead(fp, 2))
 
     return dic
 
@@ -242,14 +242,14 @@ def create_gzip_header(dic):
                    dic['xfl'], dic['os'])
 
     if dic['flg'] & FEXTRA:
-        res += from_i32(len(dic['exfield']))
+        res += from_i16(len(dic['exfield']))
         res += dic['exfield']
     if dic['flg'] & FNAME:
         res += dic['name'].encode(ENCODING) + b'\0'
     if dic['flg'] & FCOMMENT:
         res += dic['comment'].encode(ENCODING) + b'\0'
     if dic['flg'] & FHCRC:
-        res += from_i32(dic['crc16'])
+        res += from_i16(dic['crc16'])
     return res
 
 
@@ -273,8 +273,8 @@ def to_text(fpin, fpout):
     fpout.write(wrapline(b64encode(last[:-8])))
     fpout.write(b'----\n')
 
-    crc32 = to_i64(last[-8:-4])
-    isize = to_i64(last[-4:])
+    crc32 = to_i32(last[-8:-4])
+    isize = to_i32(last[-4:])
     fpout.write(b'crc32' + SEP + str(crc32).encode() + b'\n')
     fpout.write(b'isize' + SEP + str(isize).encode() + b'\n')
 
@@ -292,8 +292,8 @@ def to_gzip(fpin, fpout):
         fpout.write(b64decode(bline))
 
     fdic = read_text_footer(fpin)
-    fpout.write(from_i64(fdic['crc32']))
-    fpout.write(from_i64(fdic['isize']))
+    fpout.write(from_i32(fdic['crc32']))
+    fpout.write(from_i32(fdic['isize']))
 
 
 def usage():
