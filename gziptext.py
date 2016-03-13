@@ -32,6 +32,7 @@ BUFF_SIZE = 4096
 BASE_HEADER = '<2sBBIBB'
 SEP = b'\t'
 
+I8_MAX = 0xff
 I16_MAX = 0xffff
 I32_MAX = 0xffffffff
 
@@ -114,6 +115,19 @@ def crc16(buf):
     return crc32 & 0xffff
 
 
+def is_i8(num):
+    """Check if an (unsigned) 8-bit int.
+
+    >>> is_i8(0xff)
+    True
+    >>> is_i8(0x100)
+    False
+    """
+    if not isinstance(num, int):
+        return False
+    return 0 <= num and num <= I8_MAX
+
+
 def is_i16(num):
     """Check if an (unsigned) 16-bit int.
 
@@ -176,11 +190,11 @@ def assert_header(dic):
     assert 'xfl' in dic
     assert 'os' in dic
 
-    assert is_i16(dic['cm'])
-    assert is_i16(dic['flg'])
+    assert is_i8(dic['cm'])
+    assert is_i8(dic['flg'])
     assert is_i32(dic['mtime'])
-    assert is_i16(dic['xfl'])
-    assert is_i16(dic['os'])
+    assert is_i8(dic['xfl'])
+    assert is_i8(dic['os'])
 
     if dic['flg'] & FEXTRA:
         assert 'exfield' in dic
