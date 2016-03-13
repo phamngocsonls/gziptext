@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """gziptext - convert gzip files into human-readable format
 
@@ -119,6 +119,7 @@ def wrapline(bstr, length=72):
 
 
 def assert_header(dic):
+    """Check the consistency of a header dict"""
     assert 'cm' in dic
     assert 'flg' in dic
     assert 'mtime' in dic
@@ -187,6 +188,7 @@ def read_gzip_header(fp):
 
 
 def read_text_header(fp):
+    """Parse a header dict from a file pointer"""
     dic = {}
     for bline in fp:
         bline = bline.rstrip()
@@ -207,6 +209,7 @@ def read_text_header(fp):
 
 
 def read_text_footer(fp):
+    """Parse a footer dict from a file pointer"""
     dic = {}
     for bline in fp:
         bline = bline.rstrip()
@@ -217,7 +220,7 @@ def read_text_footer(fp):
 
 
 def create_text_header(dic):
-    """Convert header dict to bytes"""
+    """Serialize a header dict into the human-readable format"""
     res = b''
     for key, val in dic.items():
         bkey = key.encode()
@@ -235,6 +238,7 @@ def create_text_header(dic):
 
 
 def create_gzip_header(dic):
+    """Serialize a header dict into bytes"""
     res = b''
     hd = Struct(BASE_HEADER)
     res += hd.pack(GZIP_MAGIC, dic['cm'], dic['flg'], dic['mtime'],
@@ -253,6 +257,7 @@ def create_gzip_header(dic):
 
 
 def to_text(fpin, fpout):
+    """Output a text dump of a given gzip file"""
     hdic = read_gzip_header(fpin)
     assert_header(hdic)
     fpout.write(create_text_header(hdic))
@@ -278,6 +283,7 @@ def to_text(fpin, fpout):
 
 
 def to_gzip(fpin, fpout):
+    """Output a gzip binary of a given text file"""
     hdic = read_text_header(fpin)
     assert_header(hdic)
     fpout.write(create_gzip_header(hdic))
