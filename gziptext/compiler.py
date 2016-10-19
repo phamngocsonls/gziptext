@@ -13,7 +13,7 @@ class Compiler:
         header = self.read_header(fpin)
         fpout.write(bytes(header))
         while True:
-            line = fp.readline(MAX_LINE_LENGTH+1)
+            line = fpin.readline(MAX_LINE_LENGTH+1)
             if len(line) > MAX_LINE_LENGTH:
                 raise ValueError('line too long')
             if self.is_section_end(line):

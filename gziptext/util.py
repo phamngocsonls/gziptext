@@ -1,4 +1,3 @@
-
 import re
 import zlib
 
@@ -17,7 +16,7 @@ def parse_string(buf):
         if c == '\\':
             continue
         s += c
-    return s + '\0'
+    return s
 
 
 def crc16(buf):

@@ -1,5 +1,6 @@
 from struct import pack
 
+
 class GzipHeader:
 
     def __init__(self):
@@ -46,10 +47,10 @@ class GzipHeader:
         return byte
 
     def set_flg(self, flg):
-        self.ftext  = int(bool(flg & 1))
-        self.fhcrc  = int(bool(flg & 2))
+        self.ftext = int(bool(flg & 1))
+        self.fhcrc = int(bool(flg & 2))
         self.fextra = int(bool(flg & 4))
-        self.fname  = int(bool(flg & 8))
+        self.fname = int(bool(flg & 8))
         self.fcomment = int(bool(flg & 16))
 
     def __bytes__(self):
@@ -62,9 +63,9 @@ class GzipHeader:
             res += pack('<BBH', self.extsi1, self.extsi2, len(self.extdata))
             res += self.extdata
         if self.fname:
-            res += self.name
+            res += self.name + b'\0'
         if self.fcomment:
-            res += self.comment
+            res += self.comment + b'\0'
         if self.fhcrc:
             res += pack('<H', crc16(res))
 

@@ -3,13 +3,17 @@ import sys
 from .compiler import Compiler
 from .decompiler import Decompiler
 
+
+#
 # Constants
 
 COMPILE = 1
 DECOMPILE = 2
 
 
+#
 # Utils
+
 def stderr(*args, **kwargs):
     kwargs['file'] = sys.stderr
     print(*args, **kwargs)

@@ -1,5 +1,3 @@
-
-
 from base64 import b64encode
 from struct import unpack
 from .util import crc16, parse_bytes, parse_string, wrapline
@@ -11,24 +9,25 @@ ENCODING = 'latin-1'
 BUFFER_SIZE = 4096
 MAX_STR_LENGTH = 1048576  # 1MB
 
+
 class Decompiler:
 
     def decompile(self, fpin, fpout):
         header = GzipHeader()
-        
+
         header = self.read_header(fpin)
         fpout.write(format_header(header))
 
-        fpout.write('----\n')
+        fpout.write('\n----\n')
         buf = b''
         while True:
-            head = fp.read(BUFFER_SIZE)
+            head = fpin.read(BUFFER_SIZE)
             fpout.write(wrapline(self.decode_buffer(buf)))
             buf = head
             if len(head) < BUFFER_SIZE:
                 break
 
-        fpout.write(wrapline(self.decode_buffer(buf[:8])))
+        fpout.write(wrapline(self.decode_buffer(buf[:-8])))
         fpout.write('----\n')
 
         footer = GzipFooter()
@@ -40,9 +39,12 @@ class Decompiler:
         hd = GzipHeader()
 
         hd.id1, hd.id2 = unpack('<BB', fp.read(2))
+        if (hd.id1, hd.id2) != (0x1f, 0x8b):
+            raise ValueError('input is not a gzip file')
+
         hd.cm, flg, hd.mtime, hd.xfl, hd.os = unpack('<BBIBB', fp.read(8))
         hd.set_flg(flg)
-        
+
         if hd.fextra:
             hd.xlen = unpack('<H', fp.read(2))[0]
             buf = fp.read(hd.xlen)
@@ -64,15 +66,15 @@ class Decompiler:
     @staticmethod
     def read_string(fp):
         s = b''
-        i = 0
+        i = 1
         while True:
             c = fp.read(1)
-            s += c
-            i += 1
             if i > MAX_STR_LENGTH:
                 raise ValueError('value too long')
             if not c:
                 raise ValueError('header truncated')
             if c == b'\0':
                 break
+            i += 1
+            s += c
         return s.decode(ENCODING)
