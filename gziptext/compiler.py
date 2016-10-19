@@ -90,10 +90,3 @@ class Compiler:
             return parse_bytes(buf)
         else:
             raise ValueError('unknown field: %s' % word)
-
-
-if __name__ == "__main__":
-    import sys
-    fp = open('sample.gzt', 'r')
-    cp = Compiler()
-    cp.compile(fp, sys.stdout.buffer)

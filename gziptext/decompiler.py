@@ -76,11 +76,3 @@ class Decompiler:
             if c == b'\0':
                 break
         return s.decode(ENCODING)
-
-
-
-if __name__ == "__main__":
-    import sys
-    fp = open('sample.txt.gz', 'rb')
-    dcp = Decompiler() 
-    dcp.decompile(fp, sys.stdout)
