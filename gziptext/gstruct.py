@@ -46,11 +46,11 @@ class GzipHeader:
         return byte
 
     def set_flg(self, flg):
-        self.ftext  = flg | 1
-        self.fhcrc  = flg | 2
-        self.fextra = flg | 4
-        self.fname  = flg | 8
-        self.fcomment = flg | 16
+        self.ftext  = int(bool(flg & 1))
+        self.fhcrc  = int(bool(flg & 2))
+        self.fextra = int(bool(flg & 4))
+        self.fname  = int(bool(flg & 8))
+        self.fcomment = int(bool(flg & 16))
 
     def __bytes__(self):
         res = b''
