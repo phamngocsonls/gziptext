@@ -42,7 +42,8 @@ class Compiler:
 
             word = line[:i].strip()
             value = self.parse_value(word, line[i+1:])
-            setattr(header, word, value)
+            if value is not None:
+                setattr(header, word, value)
 
         return header
 
@@ -76,6 +77,8 @@ class Compiler:
     @staticmethod
     def parse_value(word, buf):
         buf = buf.strip()
+        if buf == '':
+            return None
 
         if word in ('id1', 'id2', 'cm', 'ftext', 'fhcrc', 'fextra',
                     'fname', 'fcomment', 'mtime', 'xfl', 'os',
