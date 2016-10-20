@@ -19,8 +19,17 @@ Requirements
 
 Python 3.2 or later. (Python 2 is not supported)
 
-Example
--------
+
+How to install
+--------------
+
+Install gziptext via pip:
+
+    $ pip install git+git://github.com/fujimotos/gziptext.git
+
+
+Usage
+-----
 
 Suppose you have a gzip file named test.gz:
 
