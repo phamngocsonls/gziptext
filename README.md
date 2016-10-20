@@ -2,25 +2,22 @@ gziptext
 ========
 
 gziptext is a "disassembler" of gzip files. This program allows you to examine
-metadata of gzip binary by dumping the data in human-readable form.
+the metadata of gzip binaries by dumping the data into human-readable format.
 
-Some nice things about this program:
+There are some nice things about this program:
 
-* The resulting text dump is well annotated.
-* It also supports "assembling". So you can use it to tweak metadata of your
-  gzip archive.
+ - Written in pure Python.
+ - No external library dependency.
+ - Well-annotated output.
+ - Supports "assembling" (converting back to gzip binary).
 
-Here is [an example output of gziptext](doc/sample.xgz).
+Here is [an example output](doc/sample.xgz) of gziptext.
 
-If you are interested in the details of gzip file format, please read
-[RFC-1952](https://tools.ietf.org/html/rfc1952) (which is *extremely*
-well-written).
 
 Requirements
 ------------
 
 Python 3.2 or later. (Python 2 is not supported)
-
 
 Example
 -------
@@ -38,6 +35,14 @@ Dump the gzip file into the human-readable format:
 Convert it back:
 
     $ gziptext -R test.xgz -o new.gz
+
+
+NOTE
+----
+
+If you are interested in the details of gzip file format, please read
+[RFC-1952](https://tools.ietf.org/html/rfc1952) (which is *extremely*
+well-written).
 
 
 License
