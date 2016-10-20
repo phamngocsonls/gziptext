@@ -10,6 +10,7 @@ Some nice things about this program:
 * It also supports "assembling". So you can use it to tweak metadata of your
   gzip archive.
 
+Here is [an example output](doc/sample.xgz).
 
 Requirements
 ------------
