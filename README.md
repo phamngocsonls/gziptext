@@ -10,7 +10,11 @@ Some nice things about this program:
 * It also supports "assembling". So you can use it to tweak metadata of your
   gzip archive.
 
-Here is [an example output](doc/sample.xgz).
+Here is [an example output of gziptext](doc/sample.xgz).
+
+If you are interested in the details of gzip file format, please read
+[RFC-1952](https://tools.ietf.org/html/rfc1952) (which is *extremely*
+well-written).
 
 Requirements
 ------------
