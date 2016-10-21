@@ -31,6 +31,10 @@ class Decompiler:
         fpout.write(wrapline(self.decode_buffer(buf[:-8])))
         fpout.write('----\n')
 
+        # XXX Here we naively take the last 8 bytes of the file as
+        # the footer bytes. This works fine for most cases, but this
+        # assumption is not always true (for example, when a gzip
+        # archive contains multiple members).
         footer = GzipFooter()
         footer.crc32 = unpack('<I', buf[-8:-4])[0]
         footer.isize = unpack('<I', buf[-4:])[0]
