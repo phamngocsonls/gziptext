@@ -6,6 +6,7 @@ from .format import format_header, format_footer
 
 
 ENCODING = 'latin-1'
+GZIP_MAGIC = (0x1f, 0x8b)
 BUFFER_SIZE = 4096
 MAX_STR_LENGTH = 1048576  # 1MB
 
@@ -39,7 +40,7 @@ class Decompiler:
         hd = GzipHeader()
 
         hd.id1, hd.id2 = unpack('<BB', fp.read(2))
-        if (hd.id1, hd.id2) != (0x1f, 0x8b):
+        if (hd.id1, hd.id2) != GZIP_MAGIC:
             raise ValueError('input is not a gzip file')
 
         hd.cm, flg, hd.mtime, hd.xfl, hd.os = unpack('<BBIBB', fp.read(8))
