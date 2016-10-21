@@ -4,7 +4,7 @@ from .gstruct import GzipHeader, GzipFooter
 
 
 ENCODING = 'latin-1'
-MAX_LINE_LENGTH = 512
+MAX_LINE_LENGTH = 1048576  # 1MB
 
 
 class Compiler:
