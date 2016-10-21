@@ -49,7 +49,10 @@ class Decompiler:
         if hd.fextra:
             hd.xlen = unpack('<H', fp.read(2))[0]
             buf = fp.read(hd.xlen)
-            hd.extsi1, hd.extsi2 = unpack('<BB', buf[:2])
+            hd.extsi1, hd.extsi2, extlen = unpack('<BBH', buf[:4])
+            if extlen != (xlen - 4):
+                msg = 'multiple extra fields not supported'
+                raise NotImplementedError(msg)
             hd.extdata = buf[4:]
         if hd.fname:
             hd.name = self.read_string(fp)
