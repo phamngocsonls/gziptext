@@ -1,4 +1,5 @@
 from struct import pack
+from .util import crc16
 
 
 class GzipHeader:
@@ -67,7 +68,10 @@ class GzipHeader:
         if self.fcomment:
             res += self.comment + b'\0'
         if self.fhcrc:
-            res += pack('<H', crc16(res))
+            cksum = self.crc16
+            if cksum is None:
+                cksum = crc16(res)
+            res += pack('<H', cksum)
 
         return res
 

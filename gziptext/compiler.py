@@ -1,5 +1,5 @@
 from base64 import b64decode
-from .util import crc16, parse_bytes, parse_string
+from .util import parse_bytes, parse_string
 from .gstruct import GzipHeader, GzipFooter
 
 
