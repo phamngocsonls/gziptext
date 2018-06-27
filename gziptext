@@ -3,7 +3,8 @@
 import sys
 import zlib
 import json
-from binascii import hexlify
+import getopt
+from base64 import b64encode
 from struct import unpack
 
 FTEXT = 1
@@ -31,11 +32,11 @@ def parse_ext(buf):
     while buf:
         si1, si2, slen = unpack('<BBH', buf[:4])
         data = buf[4:4+xlen]
-        res.append((si1, si2, slen, hexlify(data)))
+        res.append((si1, si2, slen, b64encode(data).decode()))
         buf = buf[4+slen:]
     return res
 
-def read_member(fp):
+def read_member(fp, include_data=False):
     buf = fp.read(10)
     if not buf:
         return None # EOF
@@ -61,22 +62,44 @@ def read_member(fp):
         m['crc16'] = unpack('<H', fp.read(2))
 
     zobj = zlib.decompressobj(-zlib.MAX_WBITS)
+    data = b''
     while 1:
-        zobj.decompress(fp.read(4096))
+        decoded = zobj.decompress(fp.read(4096))
+        if include_data:
+            data += decoded
         if zobj.unused_data:
             fp.seek(-len(zobj.unused_data), 1)
             break
-
-    zobj.flush()
+    decoded = zobj.flush()
+    if include_data:
+        m['data'] = b64encode(data + decoded).decode()
 
     m['crc32'], m['isize'] = unpack('<II', fp.read(8))
     return m
 
+def usage():
+    print('Usage: gziptext FILE1 [FILE2...]', file=sys.stderr)
+
 def main():
-    for path in sys.argv[1:]:
+    opts, args = getopt.getopt(sys.argv[1:], 'hd')
+
+    if not args:
+        usage()
+        return 1
+
+    include_data = False
+
+    for k, v in opts:
+        if k == '-h':
+            usage()
+            return 0
+        elif k == '-d':
+            include_data = True
+
+    for path in args:
         with open(path, 'rb') as fp:
             while 1:
-                m = read_member(fp)
+                m = read_member(fp, include_data=include_data)
                 if not m:
                     break
                 json.dump(m, sys.stdout, sort_keys=1)
