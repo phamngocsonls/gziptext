@@ -27,12 +27,15 @@ def read_string(fp):
         res += c
     return res
 
+def decode_bytes(buf):
+    return buf.decode(ENCODING, errors='latin-1')
+
 def parse_ext(buf):
     res = []
     while buf:
         si1, si2, slen = unpack('<BBH', buf[:4])
         data = buf[4:4+xlen]
-        res.append((si1, si2, slen, b64encode(data).decode()))
+        res.append((si1, si2, slen, decode_bytes(data)))
         buf = buf[4+slen:]
     return res
 
@@ -53,10 +56,10 @@ def read_member(fp, include_data=False):
         m['xdata'] = parse_ext(fp.read(m['xlen']))
 
     if m['flg'] & FNAME:
-        m['name'] = read_string(fp).decode(ENCODING, errors='ignore')
+        m['name'] = decode_bytes(read_string(fp))
 
     if m['flg'] & FCOMMENT:
-        m['comment'] = read_string(fp).decode(ENCODING, errors='ignore')
+        m['comment'] = decode_bytes(read_string(fp))
 
     if m['flg'] & FHCRC:
         m['crc16'] = unpack('<H', fp.read(2))
