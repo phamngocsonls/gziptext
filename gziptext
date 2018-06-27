@@ -1,0 +1,87 @@
+#!/usr/bin/python3
+
+import sys
+import zlib
+import json
+from binascii import hexlify
+from struct import unpack
+
+FTEXT = 1
+FHCRC = 2
+FEXTRA = 4
+FNAME = 8
+FCOMMENT = 16
+
+GZIP_MAGIC = (0x1f, 0x8b)
+ENCODING = 'latin-1'
+
+def read_string(fp):
+    res = b''
+    while 1:
+        c = fp.read(1)
+        if not c:
+            raise ValueError # ???
+        if c == b'\0':
+            break
+        res += c
+    return res
+
+def parse_ext(buf):
+    res = []
+    while buf:
+        si1, si2, slen = unpack('<BBH', buf[:4])
+        data = buf[4:4+xlen]
+        res.append((si1, si2, slen, hexlify(data)))
+        buf = buf[4+slen:]
+    return res
+
+def read_member(fp):
+    buf = fp.read(10)
+    if not buf:
+        return None # EOF
+
+    m = dict(zip(
+        ('id1', 'id2', 'cm', 'flg', 'mtime', 'xfl', 'os'),
+        unpack('<BBBBIBB', buf)
+    ))
+    if (m['id1'], m['id2']) != GZIP_MAGIC:
+        raise ValueError('garbage data found: %s' % buf)
+
+    if m['flg'] & FEXTRA:
+        m['xlen'] = unpack('<H', fp.read(2))[0]
+        m['xdata'] = parse_ext(fp.read(m['xlen']))
+
+    if m['flg'] & FNAME:
+        m['name'] = read_string(fp).decode(ENCODING, errors='ignore')
+
+    if m['flg'] & FCOMMENT:
+        m['comment'] = read_string(fp).decode(ENCODING, errors='ignore')
+
+    if m['flg'] & FHCRC:
+        m['crc16'] = unpack('<H', fp.read(2))
+
+    zobj = zlib.decompressobj(-zlib.MAX_WBITS)
+    while 1:
+        zobj.decompress(fp.read(4096))
+        if zobj.unused_data:
+            fp.seek(-len(zobj.unused_data), 1)
+            break
+
+    zobj.flush()
+
+    m['crc32'], m['isize'] = unpack('<II', fp.read(8))
+    return m
+
+def main():
+    for path in sys.argv[1:]:
+        with open(path, 'rb') as fp:
+            while 1:
+                m = read_member(fp)
+                if not m:
+                    break
+                json.dump(m, sys.stdout, sort_keys=1)
+                sys.stdout.write('\n')
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
