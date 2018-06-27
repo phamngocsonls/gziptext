@@ -4,7 +4,7 @@ import sys
 import zlib
 import json
 import getopt
-from base64 import b64encode
+import datetime
 from struct import unpack
 
 FTEXT = 1
@@ -15,6 +15,28 @@ FCOMMENT = 16
 
 GZIP_MAGIC = (0x1f, 0x8b)
 ENCODING = 'latin-1'
+
+COMPRESSION_METHOD = {
+    8: 'deflate'
+}
+
+OPERATING_SYSTEM = {
+    0: 'FAT filesystem (MS-DOS, OS/2, NT/Win32)',
+    1: 'Amiga',
+    2: 'VMS (or OpenVMS)',
+    3: 'Unix',
+    4: 'VM/CMS',
+    5: 'Atari TOS',
+    6: 'HPFS filesystem (OS/2, NT)',
+    7: 'Macintosh',
+    8: 'Z-System',
+    9: 'CP/M',
+    10: 'TOPS-20',
+    11: 'NTFS filesystem (NT)',
+    12: 'QDOS',
+    13: 'Acorn RISCOS',
+    255: 'unknown',
+}
 
 def read_string(fp):
     res = b''
@@ -75,36 +97,62 @@ def read_member(fp, include_data=False):
             break
     decoded = zobj.flush()
     if include_data:
-        m['data'] = b64encode(data + decoded).decode()
+        m['data'] = decode_bytes(data)
 
     m['crc32'], m['isize'] = unpack('<II', fp.read(8))
+    return m
+
+def humanize(m):
+    if m['os'] in OPERATING_SYSTEM:
+        m['os'] = OPERATING_SYSTEM[m['os']]
+    if m['cm'] in COMPRESSION_METHOD:
+        m['cm'] = COMPRESSION_METHOD[m['cm']]
+
+    flg = []
+    if m['flg'] & FTEXT:
+        flg.append('FTEXT')
+    if m['flg'] & FHCRC:
+        flg.append('FHCRC')
+    if m['flg'] & FEXTRA:
+        flg.append('FEXTRA')
+    if m['flg'] & FNAME:
+        flg.append('FNAME')
+    if m['flg'] & FCOMMENT:
+        flg.append('FCOMMENT')
+
+    m['flg'] = flg
+
+    mtime = datetime.datetime.utcfromtimestamp(m['mtime'])
+    m['mtime'] = '%s UTC' % mtime
     return m
 
 def usage():
     print('Usage: gziptext FILE1 [FILE2...]', file=sys.stderr)
 
 def main():
-    opts, args = getopt.getopt(sys.argv[1:], 'hd')
+    opts, args = getopt.getopt(sys.argv[1:], 'hv')
 
     if not args:
         usage()
         return 1
 
-    include_data = False
+    verbose = 0
 
     for k, v in opts:
         if k == '-h':
             usage()
             return 0
-        elif k == '-d':
-            include_data = True
+        elif k == '-v':
+            verbose += 1
 
     for path in args:
         with open(path, 'rb') as fp:
             while 1:
-                m = read_member(fp, include_data=include_data)
+                m = read_member(fp, include_data=verbose>1)
                 if not m:
                     break
+                if verbose > 0:
+                    m = humanize(m)
                 json.dump(m, sys.stdout, sort_keys=1)
                 sys.stdout.write('\n')
     return 0
