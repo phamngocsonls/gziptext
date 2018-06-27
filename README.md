@@ -1,60 +1,22 @@
 gziptext
 ========
 
-gziptext is a "disassembler" of gzip files. This program allows you to examine
-the metadata of gzip binaries by dumping the data into human-readable format.
+gziptext extracts meta information from GZIP files and dumps it in JSON format.
 
-There are some nice things about this program:
-
- - Written in pure Python.
- - No external library dependency.
- - Well-annotated output.
- - Supports "assembling" (converting back to gzip binary).
-
-Here is [an example output](doc/sample.xgz) of gziptext.
-
-
-Requirements
+Installation
 ------------
 
-Python 3.2 or later. (Python 2 is not supported)
+ - Install Python 3.X
+ - Copy `gziptext` to the directory under your PATH.
 
+How to use
+----------
 
-How to install
---------------
+Basic usage:
 
-Install gziptext via pip:
+    gziptext FILE1 [FILE2..]
 
-    $ pip install git+git://github.com/fujimotos/gziptext.git
+Example:
 
-
-Usage
------
-
-Suppose you have a gzip file named test.gz:
-
-    $ file test.gz
-    test.gz: gzip compressed data, was "test", last modified: Sat Apr 16
-    20:41:24 2016, from Unix
-
-Dump the gzip file into the human-readable format:
-
-    $ gziptext test.gz > test.xgz
-
-Convert it back:
-
-    $ gziptext -R test.xgz -o new.gz
-
-
-NOTE
-----
-
-If you are interested in the details of gzip file format, please read
-[RFC-1952](https://tools.ietf.org/html/rfc1952) (which is *extremely*
-well-written).
-
-
-License
--------
-
-MIT License (See LICENSE for details)
+    $ gziptext compressed.gz
+    {"cm": 8, "crc32": 3444995090, "flg": 0, "id1": 31, "id2": 139, "isize": 208, "mtime": 1530113163, "os": 3, "xfi": 0}
