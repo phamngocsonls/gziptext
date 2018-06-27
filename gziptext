@@ -13,6 +13,9 @@ FEXTRA = 4
 FNAME = 8
 FCOMMENT = 16
 
+XFL_BEST_COMPRESSION = 2
+XFL_FAST_COMPRESSION = 4
+
 GZIP_MAGIC = (0x1f, 0x8b)
 ENCODING = 'latin-1'
 
@@ -121,6 +124,14 @@ def humanize(m):
         flg.append('FCOMMENT')
 
     m['flg'] = flg
+
+    xfl = []
+    if m['xfl'] & XFL_BEST_COMPRESSION:
+        xfl.append('BEST_COMPRESSION')
+    if m['xfl'] & XFL_FAST_COMPRESSION:
+        xfl.append('FAST_COMPRESSION')
+
+    m['xfl'] = xfl
 
     mtime = datetime.datetime.utcfromtimestamp(m['mtime'])
     m['mtime'] = '%s UTC' % mtime
