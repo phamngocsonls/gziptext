@@ -138,7 +138,7 @@ def humanize(m):
     return m
 
 def usage():
-    print('Usage: gziptext FILE1 [FILE2...]', file=sys.stderr)
+    print('Usage: gziptext [-h] [-v] FILE1 [FILE2...]', file=sys.stderr)
 
 def main():
     opts, args = getopt.getopt(sys.argv[1:], 'hv')
