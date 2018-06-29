@@ -74,7 +74,7 @@ def read_member(fp, include_data=False):
         unpack('<BBBBIBB', buf)
     ))
     if (m['id1'], m['id2']) != GZIP_MAGIC:
-        raise ValueError('garbage data found: %s' % buf)
+        raise ValueError('garbage data found %s' % buf)
 
     if m['flg'] & FEXTRA:
         m['xlen'] = unpack('<H', fp.read(2))[0]
@@ -159,7 +159,11 @@ def main():
     for path in args:
         with open(path, 'rb') as fp:
             while 1:
-                m = read_member(fp, include_data=verbose>1)
+                try:
+                    m = read_member(fp, include_data=verbose>1)
+                except Exception as e:
+                    sys.stdout.write('%s: %s\n' % (path, e))
+                    continue
                 if not m:
                     break
                 if verbose > 0:
